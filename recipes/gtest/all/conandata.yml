@@ -1,7 +1,7 @@
 sources:
   "master":
     url: "https://github.com/google/googletest/archive/refs/heads/main.zip"
-    sha256: "56c116273eed225ce79f2ed0bf28cbf526a7d184ad17677e27941d5b7c88cdb1"
+    sha256: "BACF58F026B58DC89204CFA907A2FBBF624CFF7338C1FB270B6107FC66B226A7"
   "1.17.0":
     url: "https://github.com/google/googletest/archive/v1.17.0.tar.gz"
     sha256: "65fab701d9829d38cb77c14acdc431d2108bfdbf8979e40eb8ae567edf10b27c"
