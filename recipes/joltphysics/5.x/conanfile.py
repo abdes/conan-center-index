@@ -31,6 +31,12 @@ class JoltPhysicsConan(ConanFile):
     }
     implements = ["auto_shared_fpic"]
 
+    @property
+    def _jolt_build_type(self):
+        if self.settings.build_type == "RelWithDebInfo":
+            return "Release"
+        return str(self.settings.build_type)
+
     def export_sources(self):
         export_conandata_patches(self)
 
@@ -56,7 +62,9 @@ class JoltPhysicsConan(ConanFile):
         tc.cache_variables["TARGET_VIEWER"] = False
         tc.cache_variables["CROSS_PLATFORM_DETERMINISTIC"] = False
         tc.cache_variables["INTERPROCEDURAL_OPTIMIZATION"] = False
-        tc.cache_variables["GENERATE_DEBUG_SYMBOLS"] = False
+        tc.cache_variables["GENERATE_DEBUG_SYMBOLS"] = self.settings.build_type == "RelWithDebInfo"
+        if self.settings.build_type == "RelWithDebInfo":
+            tc.cache_variables["CMAKE_CONFIGURATION_TYPES"] = "Release"
         tc.cache_variables["ENABLE_ALL_WARNINGS"] = False
         tc.cache_variables["OVERRIDE_CXX_FLAGS"] = False
         tc.cache_variables["DEBUG_RENDERER_IN_DEBUG_AND_RELEASE"] = False
@@ -68,12 +76,12 @@ class JoltPhysicsConan(ConanFile):
     def build(self):
         cmake = CMake(self)
         cmake.configure(build_script_folder=os.path.join(self.source_folder, "Build"))
-        cmake.build()
+        cmake.build(build_type=self._jolt_build_type)
 
     def package(self):
         copy(self, "LICENSE", src=self.source_folder, dst=os.path.join(self.package_folder, "licenses"))
         cmake = CMake(self)
-        cmake.install()
+        cmake.install(build_type=self._jolt_build_type)
         rmdir(self, os.path.join(self.package_folder, "lib", "cmake"))
         rm(self, "*.cmake", os.path.join(self.package_folder, "include", "Jolt"))
 
