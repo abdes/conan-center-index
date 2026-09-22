@@ -1,0 +1,71 @@
+--- a/Jolt/Jolt.cmake
++++ b/Jolt/Jolt.cmake
+@@ -622,7 +622,7 @@
+ 			foreach(SHADER ${JOLT_PHYSICS_SHADERS})
+ 				string(REPLACE ".hlsl" ".dxil" DXIL_SHADER ${SHADER})
+ 				add_custom_command(OUTPUT ${DXIL_SHADER}
+-					COMMAND ${DXC_COMPILER} -E main -T cs_6_0 -I Jolt/Shaders -WX -all_resources_bound ${DXC_OPTIMIZATION_FLAGS} ${DXC_DEBUG_FLAGS} ${SHADER} -Fo ${DXIL_SHADER}
++					COMMAND "${DXC_COMPILER}" -E main -T cs_6_0 -I Jolt/Shaders -WX -all_resources_bound ${DXC_OPTIMIZATION_FLAGS} ${DXC_DEBUG_FLAGS} ${SHADER} -Fo ${DXIL_SHADER}
+ 					DEPENDS ${SHADER} ${JOLT_PHYSICS_SHADER_HEADERS} # Currently don't have a way to detect header dependencies, so making dependent on all
+ 					COMMENT "Compiling HLSL ${SHADER}")
+ 				list(APPEND JOLT_PHYSICS_DXIL_SHADERS ${DXIL_SHADER})
+@@ -673,8 +673,8 @@
+ 			MESSAGE("Application 'spirv-cross' not found. Can't compile compute shaders. Some functionality will be unavailable. You can install it by e.g. installing the Vulkan SDK.")
+ 		else()
+ 			# Determine target for shader compiler
+-			if (IOS)
+-				set(METAL_SDK_TARGET "iphonesimulator")
++			if (CMAKE_OSX_SYSROOT)
++				set(METAL_SDK_TARGET "${CMAKE_OSX_SYSROOT}")
+ 			else()
+ 				set(METAL_SDK_TARGET "macosx")
+ 			endif()
+@@ -686,8 +686,8 @@
+ 				set(MTL_SHADER "${CMAKE_CURRENT_BINARY_DIR}/${SHADER_STEM}.metal")
+ 				set(AIR_SHADER "${CMAKE_CURRENT_BINARY_DIR}/${SHADER_STEM}.air")
+ 				add_custom_command(OUTPUT ${AIR_SHADER}
+-					COMMAND ${DXC_COMPILER} -E main -T cs_6_0 -I Jolt/Shaders -WX -O3 -all_resources_bound ${SHADER} -spirv -fvk-use-dx-layout -fspv-entrypoint-name=${SHADER_STEM} -Fo ${SPV_SHADER}
+-					COMMAND ${SPIRV_CROSS_COMPILER} ${SPV_SHADER} --msl --output ${MTL_SHADER}
++					COMMAND "${DXC_COMPILER}" -E main -T cs_6_0 -I Jolt/Shaders -WX -O3 -all_resources_bound ${SHADER} -spirv -fvk-use-dx-layout -fspv-entrypoint-name=${SHADER_STEM} -Fo ${SPV_SHADER}
++					COMMAND "${SPIRV_CROSS_COMPILER}" ${SPV_SHADER} --msl --output ${MTL_SHADER}
+ 					COMMAND xcrun -sdk ${METAL_SDK_TARGET} metal -c ${MTL_SHADER} -o ${AIR_SHADER}
+ 					DEPENDS ${SHADER} ${JOLT_PHYSICS_SHADER_HEADERS} # Currently don't have a way to detect header dependencies, so making dependent on all
+ 					COMMENT "Compiling Metal ${SHADER}")
+@@ -718,8 +718,8 @@
+ 
+ # Vulkan support
+ if (JPH_USE_VK)
+-	find_package(Vulkan)
+-	if (Vulkan_FOUND)
++	find_package(VulkanHeaders REQUIRED CONFIG)
++	if (TARGET Vulkan::Headers)
+ 		# Vulkan source files
+ 		set(JOLT_PHYSICS_SRC_FILES
+ 			${JOLT_PHYSICS_SRC_FILES}
+@@ -741,7 +741,7 @@
+ 
+ 		# TODO: For some reason it errors on finding dxc when we specify the dxc component to find_vulkan (and update cmake version)
+ 		# For now, just set it manually
+-		string(REPLACE "glslc" "dxc" Vulkan_dxc_EXECUTABLE ${Vulkan_GLSLC_EXECUTABLE})
++		set(Vulkan_dxc_EXECUTABLE "${DXC_COMPILER}")
+ 
+ 		if (JPH_SHADER_DEBUG_SYMBOLS)
+ 			set(SPV_DEBUG_FLAGS -fspv-debug=vulkan-with-source)
+@@ -763,7 +763,7 @@
+ 				# The glslc compiler has the following issues:
+ 				# - All buffers bind to slot 0. We don't want to manually specify registers so this requires going into the SPIRV code and patching it.
+ 				# - It automatically aligns float3 to 16 byte boundaries which wastes a lot of memory in structs. We only seem to be able to override this alignment when compiling a GLSL shader and not with HLSL.
+-				COMMAND ${Vulkan_dxc_EXECUTABLE} -E main -T cs_6_0 -I Jolt/Shaders -WX -all_resources_bound -spirv -fvk-use-dx-layout ${SPV_OPTIMIZATION_FLAGS} ${SPV_DEBUG_FLAGS} ${SHADER} -Fo ${SPV_SHADER}
++				COMMAND "${Vulkan_dxc_EXECUTABLE}" -E main -T cs_6_0 -I Jolt/Shaders -WX -all_resources_bound -spirv -fvk-use-dx-layout ${SPV_OPTIMIZATION_FLAGS} ${SPV_DEBUG_FLAGS} ${SHADER} -Fo ${SPV_SHADER}
+ 				DEPENDS ${SHADER} ${JOLT_PHYSICS_SHADER_HEADERS} # Currently don't have a way to detect header dependencies, so making dependent on all
+ 				COMMENT "Compiling Vulkan ${SHADER}")
+ 			list(APPEND JOLT_PHYSICS_SPV_SHADERS ${SPV_SHADER})
+@@ -895,7 +895,7 @@
+ if (JPH_USE_VK)
+ 	target_compile_definitions(Jolt PUBLIC JPH_USE_VK)
+ 
+-	target_include_directories(Jolt PUBLIC ${Vulkan_INCLUDE_DIRS})
++	target_link_libraries(Jolt PUBLIC Vulkan::Headers ${CMAKE_DL_LIBS})
+ endif()
+ 
+ # Compile against Metal
