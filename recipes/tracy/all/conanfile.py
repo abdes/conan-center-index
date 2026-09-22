@@ -3,6 +3,7 @@ from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
 from conan.tools.gnu import PkgConfigDeps
 from conan.tools.files import copy, get, rmdir
+from conan.tools.scm import Version
 import os
 
 required_conan_version = ">=2.1"
@@ -32,6 +33,7 @@ class TracyConan(ConanFile):
         "no_context_switch": ([True, False], False),
         "no_exit": ([True, False], False),
         "no_sampling": ([True, False], False),
+        "no_wait_stacks": ([True, False], False),
         "no_verify": ([True, False], False),
         "no_vsync_capture": ([True, False], False),
         "no_frame_image": ([True, False], False),
@@ -60,6 +62,14 @@ class TracyConan(ConanFile):
     }
     implements = ["auto_shared_fpic"]
 
+    def config_options(self):
+        if self.settings.os == "Windows":
+            self.options.rm_safe("fPIC")
+        if Version(self.version) >= "0.14.1":
+            self.options.rm_safe("delayed_init")
+        else:
+            self.options.rm_safe("no_wait_stacks")
+
     def layout(self):
         cmake_layout(self, src_folder="src")
 
@@ -75,10 +85,16 @@ class TracyConan(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self)
+        # Do not pick up an undeclared SDK from the build machine.
+        tc.variables["CMAKE_DISABLE_FIND_PACKAGE_rocprofiler-sdk"] = True
         # Set all tracy options in the correct form
         # For example, TRACY_NO_EXIT
         for opt in self._tracy_options.keys():
-            switch = getattr(self.options, opt)
+            switch = self.options.get_safe(opt)
+            if switch is None:
+                continue
+            if opt == "callstack" and Version(self.version) >= "0.14.0":
+                switch = "1" if switch else ""
             opt = f"TRACY_{opt.upper()}"
             tc.variables[opt] = switch
         tc.generate()
@@ -135,7 +151,10 @@ class TracyConan(ConanFile):
 
         # Tracy CMake adds options set to ON as public
         for opt in self._tracy_options.keys():
-            switch = getattr(self.options, opt)
+            switch = self.options.get_safe(opt)
+            if opt == "callstack" and switch and Version(self.version) >= "0.14.0":
+                self.cpp_info.components["tracyclient"].defines.append("TRACY_CALLSTACK=1")
+                continue
             opt = f"TRACY_{opt.upper()}"
             if switch:
                 self.cpp_info.components["tracyclient"].defines.append(opt)
