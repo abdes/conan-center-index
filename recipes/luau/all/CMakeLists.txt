@@ -8,6 +8,19 @@ add_subdirectory(${LUAU_SRC_DIR})
 ## installer
 include(GNUInstallDirs)
 
+# Luau 0.739 separates bytecode construction and inlining from Compiler.
+foreach(component Bytecode Inliner)
+    if(TARGET Luau.${component})
+        install(TARGETS Luau.${component}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+        install(DIRECTORY "${LUAU_SRC_DIR}/${component}/include/Luau"
+            DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+    endif()
+endforeach()
+
+
 install(
     TARGETS Luau.Common
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

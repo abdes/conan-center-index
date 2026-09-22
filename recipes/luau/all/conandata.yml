@@ -1,4 +1,7 @@
 sources:
+  "0.739":
+    url: "https://github.com/luau-lang/luau/archive/refs/tags/0.739.tar.gz"
+    sha256: "7eca9d2e4362588e9ce95f2fa976e46252231564b29a88fe77f0806a4eae9b40"
   "0.708":
     url: "https://github.com/Roblox/luau/archive/0.708.tar.gz"
     sha256: "06DB02B4CFCAB77FDC6E83C0967642F20ECA40258BF97CC95D87DBBD8EDA4C43"

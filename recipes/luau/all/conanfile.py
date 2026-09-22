@@ -2,6 +2,7 @@ from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.files import get, copy
 from conan.tools.build import check_min_cppstd
+from conan.tools.scm import Version
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
 
 import os
@@ -89,6 +90,14 @@ class LuauConan(ConanFile):
         self.cpp_info.components["Compiler"].libs = ["Luau.Compiler"]
         self.cpp_info.components["Compiler"].set_property("cmake_target_name", "Luau::Compiler")
         self.cpp_info.components["Compiler"].requires = ["Ast"]
+        if Version(self.version) >= "0.739":
+            self.cpp_info.components["Bytecode"].libs = ["Luau.Bytecode"]
+            self.cpp_info.components["Bytecode"].set_property("cmake_target_name", "Luau::Bytecode")
+            self.cpp_info.components["Bytecode"].requires = ["Common"]
+            self.cpp_info.components["Inliner"].libs = ["Luau.Inliner"]
+            self.cpp_info.components["Inliner"].set_property("cmake_target_name", "Luau::Inliner")
+            self.cpp_info.components["Inliner"].requires = ["Bytecode", "VM"]
+            self.cpp_info.components["Compiler"].requires.append("Bytecode")
         # CodeGen
         self.cpp_info.components["CodeGen"].libs = ["Luau.CodeGen"]
         self.cpp_info.components["CodeGen"].set_property("cmake_target_name", "Luau::CodeGen")
@@ -103,3 +112,12 @@ class LuauConan(ConanFile):
             self.cpp_info.components["Web"].set_property("cmake_target_name", "Luau::Web")
             self.cpp_info.components["Web"].requires = ["Compiler", "VM", "Analysis"]
 
+
+        # CMakeConfigDeps in Conan 2.32 treats the dotted Luau component name
+        # as a filename extension during location deduction. Give every
+        # component its exact archive so VM cannot resolve to Analysis.
+        for component in self.cpp_info.components.values():
+            component.type = "static-library"
+            library = component.libs[0]
+            filename = f"{library}.lib" if self.settings.os == "Windows" else f"lib{library}.a"
+            component.location = os.path.join(self.package_folder, "lib", filename)
