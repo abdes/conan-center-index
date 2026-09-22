@@ -1,0 +1,25 @@
+--- a/src/exr_jph_simd.c
++++ b/src/exr_jph_simd.c
+@@ -16,6 +16,9 @@
+ 
+ #if defined(EXR_X86)
+ #include <immintrin.h>
++#if defined(_MSC_VER)
++#include <intrin.h>
++#endif
+ 
+ #if defined(__GNUC__) || defined(__clang__)
+ #define EXR_TARGET(x) __attribute__((target(x)))
+@@ -705,7 +708,12 @@
+     next_unstuff = flags >> 16u;
+     flags = (flags | msp->unstuff) & 0xffffu;
+     while (flags) {
++#if defined(_MSC_VER) && !defined(__clang__)
++        unsigned long loc;
++        _BitScanReverse(&loc, flags);
++#else
+         uint32_t loc = 31u - (uint32_t)__builtin_clz(flags);
++#endif
+         __m128i t, m, c;
+         --bits;
+         flags ^= 1u << loc;

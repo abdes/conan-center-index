@@ -1,0 +1,56 @@
+--- a/src/exr_zstd.c
++++ b/src/exr_zstd.c
+@@ -6,7 +6,7 @@
+  */
+ 
+ #include "exr_internal.h"
+-#include "tinyexr_zstd.h"
++#include <zstd.h>
+ 
+ /* The freestanding decode path and the disabled encoder must travel together:
+  * a freestanding build links the malloc-stubbed amalgamation, so encode cannot
+@@ -34,20 +34,20 @@
+     size_t wsize;
+     ZSTD_DCtx *dctx;
+ 
+-    wsize = tinyexr_zstd_ZSTD_estimateDCtxSize();
++    wsize = ZSTD_estimateDCtxSize();
+     if (wsize == 0) return EXR_ERROR_CORRUPT; /* defensive: never happens */
+     base = exr_malloc(a, wsize + 7u);
+     if (!base) return EXR_ERROR_OUT_OF_MEMORY;
+     ws = (uint8_t *)(((uintptr_t)base + 7u) & ~(uintptr_t)7u);
+-    dctx = tinyexr_zstd_ZSTD_initStaticDCtx(ws, wsize);
++    dctx = ZSTD_initStaticDCtx(ws, wsize);
+     if (!dctx) { exr_free(a, base); return EXR_ERROR_CORRUPT; }
+-    n = tinyexr_zstd_ZSTD_decompressDCtx(dctx, dst, dst_size, src, src_size);
++    n = ZSTD_decompressDCtx(dctx, dst, dst_size, src, src_size);
+     exr_free(a, base);
+ #else
+     (void)a;
+-    n = tinyexr_zstd_decompress(dst, dst_size, src, src_size);
++    n = ZSTD_decompress(dst, dst_size, src, src_size);
+ #endif
+-    if (tinyexr_zstd_is_error(n) || n != dst_size) return EXR_ERROR_CORRUPT;
++    if (ZSTD_isError(n) || n != dst_size) return EXR_ERROR_CORRUPT;
+     return EXR_SUCCESS;
+ }
+ 
+@@ -74,14 +74,14 @@
+         return EXR_SUCCESS;
+     }
+ 
+-    bound = tinyexr_zstd_compress_bound(n);
+-    if (tinyexr_zstd_is_error(bound) || bound == 0) return EXR_ERROR_CORRUPT;
++    bound = ZSTD_compressBound(n);
++    if (ZSTD_isError(bound) || bound == 0) return EXR_ERROR_CORRUPT;
+ 
+     comp = (uint8_t *)exr_malloc(a, bound);
+     if (!comp) return EXR_ERROR_OUT_OF_MEMORY;
+ 
+-    clen = tinyexr_zstd_compress(comp, bound, src, n, EXR_ZSTD_LEVEL);
+-    if (tinyexr_zstd_is_error(clen) || clen >= n) {
++    clen = ZSTD_compress(comp, bound, src, n, EXR_ZSTD_LEVEL);
++    if (ZSTD_isError(clen) || clen >= n) {
+         exr_free(a, comp);
+         *out_data = (uint8_t *)exr_malloc(a, n);
+         if (!*out_data) return EXR_ERROR_OUT_OF_MEMORY;
