@@ -5,24 +5,18 @@
 #  Note: please do not maintain multiple patch versions of the same minor,
 #        unless required by the above.
 sources:
-  3.6.1:
-    url: "https://github.com/openssl/openssl/releases/download/openssl-3.6.1/openssl-3.6.1.tar.gz"
-    sha256: b1bfedcd5b289ff22aee87c9d600f515767ebf45f77168cb6d64f231f518a82e
-  3.5.5: # LTS: keep until next LTS is designed
-    url: "https://github.com/openssl/openssl/releases/download/openssl-3.5.5/openssl-3.5.5.tar.gz"
-    sha256: b28c91532a8b65a1f983b4c28b7488174e4a01008e29ce8e69bd789f28bc2a89
-  3.4.4:
-    url: "https://github.com/openssl/openssl/releases/download/openssl-3.4.4/openssl-3.4.4.tar.gz"
-    sha256: 7bdf55ac20f2779e99e5eca306f824fad2b37dee5a06cc35ed5a8b85a6060010
-  3.3.6:
-    url: "https://github.com/openssl/openssl/releases/download/openssl-3.3.6/openssl-3.3.6.tar.gz"
-    sha256: 22db04f3c8f9a808c9795dcf7d2713ff40c12c410ea2d1f6435c6c9c8558958b
-  3.2.6:
-    url: "https://github.com/openssl/openssl/releases/download/openssl-3.2.6/openssl-3.2.6.tar.gz"
-    sha256: 89681a9ddaa9ed7cf25ea8ef61338db805200bae47d00510490623547380c148
+  3.6.4:
+    url: "https://github.com/openssl/openssl/releases/download/openssl-3.6.4/openssl-3.6.4.tar.gz"
+    sha256: 9bffaa1ad1e07b354c21bd3324ec02fa15579f45a7d0494b3e74bc449b7333ef
+  3.5.8: # LTS: keep until next LTS is designed
+    url: "https://github.com/openssl/openssl/releases/download/openssl-3.5.8/openssl-3.5.8.tar.gz"
+    sha256: a8f84a39918ec6415ce765d9b429d313ba97b8143169c172e734b9514464f5b2
+  3.4.7:
+    url: "https://github.com/openssl/openssl/releases/download/openssl-3.4.7/openssl-3.4.7.tar.gz"
+    sha256: 7261c348e6e59bc7b635a30f98072e8817a1c60a7033bb570737394a3a061842
   3.1.2: # Most recent FIPS validated as of 2025-03-14
     url: "https://github.com/openssl/openssl/releases/download/openssl-3.1.2/openssl-3.1.2.tar.gz"
     sha256: a0ce69b8b97ea6a35b96875235aa453b966ba3cba8af2de23657d8b6767d6539
-  3.0.19: # LTS: 3.5.5 should be used, but this is supported by OpenSSL until 2026-09-07
-    url: "https://github.com/openssl/openssl/releases/download/openssl-3.0.19/openssl-3.0.19.tar.gz"
-    sha256: fa5a4143b8aae18be53ef2f3caf29a2e0747430b8bc74d32d88335b94ab63072
+  3.0.22: # LTS: 3.5.8 should be used, but this is supported by OpenSSL until 2026-09-07
+    url: "https://github.com/openssl/openssl/releases/download/openssl-3.0.22/openssl-3.0.22.tar.gz"
+    sha256: 67ebca7e50d17383028045486653492195b83db95f8558709701bb47b5c1ef81

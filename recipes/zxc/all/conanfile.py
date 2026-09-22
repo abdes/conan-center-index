@@ -45,6 +45,7 @@ class ZxcConan(ConanFile):
         tc.cache_variables["ZXC_BUILD_CLI"] = False
         tc.cache_variables["ZXC_BUILD_TESTS"] = False
         tc.cache_variables["ZXC_ENABLE_LTO"] = False
+        tc.cache_variables["ZXC_USE_SYSTEM_RAPIDHASH"] = True
         tc.cache_variables["FIND_PACKAGE_DISABLE_Doxygen"] = True
         tc.generate()
 
@@ -70,7 +71,7 @@ class ZxcConan(ConanFile):
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", "zxc")
         self.cpp_info.set_property("cmake_target_name", "zxc::zxc_lib")
-        self.cpp_info.set_property("pkg_config_name", "zxc")
+        self.cpp_info.set_property("pkg_config_name", "libzxc")
         self.cpp_info.libs = ["zxc"]
         if not self.options.shared:
             self.cpp_info.defines.append("ZXC_STATIC_DEFINE")
